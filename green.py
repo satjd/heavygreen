@@ -1,38 +1,40 @@
-# Copyright (c) 2015 Angus H. (4148)
-# Distributed under the GNU General Public License v3.0 (GPLv3).
-
-from datetime import date, timedelta
-from random import randint
-from time import sleep
-import sys
-import subprocess
+import datetime
 import os
 
-# returns a date string for the date that is N days before STARTDATE
-def get_date_string(n, startdate):
-	d = startdate - timedelta(days=n)
-	rtn = d.strftime("%a %b %d %X %Y %z -0400")
-	return rtn
+# from heavy import special_commit
 
-# main app
-def main(argv):
-	if len(argv) < 1 or len(argv) > 2:
-		print "Error: Bad input."
-		sys.exit(1)
-	n = int(argv[0])
-	if len(argv) == 1:
-		startdate = date.today()
-	if len(argv) == 2:
-		startdate = date(int(argv[1][0:4]), int(argv[1][5:7]), int(argv[1][8:10]))
-	i = 0
-	while i <= n:
-		curdate = get_date_string(i, startdate)
-		num_commits = randint(1, 10)
-		for commit in range(0, num_commits):
-			subprocess.call("echo '" + curdate + str(randint(0, 1000000)) +"' > realwork.txt; git add realwork.txt; GIT_AUTHOR_DATE='" + curdate + "' GIT_COMMITTER_DATE='" + curdate + "' git commit -m 'update'; git push;", shell=True)
-			sleep(.5)
-		i += 1
-	subprocess.call("git rm realwork.txt; git commit -m 'delete'; git push;", shell=True)
 
-if __name__ == "__main__":
-	main(sys.argv[1:])
+def modify():
+    file = open('zero.md', 'r')
+    flag = int(file.readline()) == 0
+    file.close()
+    file = open('zero.md', 'w+')
+    if flag:
+        file.write('1')
+    else:
+        file.write('0')
+        file.close()
+
+
+def commit():
+    os.system('git commit -a -m test_github_streak > /dev/null 2>&1')
+
+
+def set_sys_time(year, month, day):
+    os.system('date -s %04d%02d%02d' % (year, month, day))
+
+
+def trick_commit(year, month, day):
+    set_sys_time(year, month, day)
+    modify()
+    commit()
+
+
+def daily_commit(start_date, end_date):
+    for i in range((end_date - start_date).days + 1):
+        cur_date = start_date + datetime.timedelta(days=i)
+        trick_commit(cur_date.year, cur_date.month, cur_date.day)
+
+
+if __name__ == '__main__':
+    daily_commit(datetime.date(2015, 3, 31), datetime.date(2016, 1, 28))
